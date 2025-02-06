@@ -1,0 +1,11 @@
+dist
+.direnv
+.env*
+!.env.example
+cosign*
+image-refs.txt
+.registry-data
+bin
+bin/kubectl
+!.envrc
+!bin/*.sh

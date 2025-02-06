@@ -1,0 +1,30 @@
+apiVersion: k3d.io/v1alpha4 
+kind: Simple
+metadata:
+  name: ${K3D_CLUSTER_NAME}
+servers: 1 
+agents: 1 
+image: "rancher/k3s:${K3S_VERSION}"
+ports:
+  - port: 8080:80
+    nodeFilters:
+      - loadbalancer
+  - port: 8443:443
+    nodeFilters:
+      - loadbalancer
+  - port: 8180:8080
+    nodeFilters:
+      - loadbalancer
+registries:
+  create:
+    name: registry.localhost
+    host: "0.0.0.0"
+    hostPort: "5001"
+    proxy:
+      remoteURL: https://registry-1.docker.io
+      username: "${DOCKERHUB_USERNAME}"
+      password: "${DOCKERHUB_PASSWORD}"
+    volumes:
+      - ${REGISTRY_DATA}:/var/lib/registry 
+  runtime: # runtime (docker) specific options
+    gpuRequest: all # same as `--gpus all`
