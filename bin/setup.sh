@@ -1,10 +1,9 @@
 #!/usr/bin/env bash
 
-set -euxo pipefail
+set -euo pipefail
 
 SCRIPT_DIR=$( cd -- "$( dirname -- "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )
 
-mkdir -p "${REGISTRY_DATA}"
 mkdir -p "$(dirname "$KUBECONFIG")"
 
 curl -sSL "https://dl.k8s.io/release/${K3S_VERSION%[+-]*}/bin/$(uname -o | tr '[:upper:]' '[:lower:]')/$(uname -m)/kubectl" -o "$PWD/bin/kubectl"

@@ -9,3 +9,5 @@ bin
 bin/kubectl
 !.envrc
 !bin/*.sh
+**/.*.env
+**/*.secret

@@ -1,30 +1,62 @@
-apiVersion: k3d.io/v1alpha4 
+apiVersion: k3d.io/v1alpha5
 kind: Simple
 metadata:
   name: ${K3D_CLUSTER_NAME}
-servers: 1 
-agents: 1 
+servers: 1
+agents: 1
 image: "rancher/k3s:${K3S_VERSION}"
 ports:
-  - port: 8080:80
+  # Kafka External 9094(external) set to nodeport 31905 and it will be accessible from host using 19094
+  - port: 19094:31905
     nodeFilters:
       - loadbalancer
-  - port: 8443:443
+  # RisingWave SQL - 4567 set to nodeport 31910 and it will be accessible from host using 14566
+  - port: 14567:31910
     nodeFilters:
       - loadbalancer
-  - port: 8180:8080
+  # # MINIO API - 9091 set to nodeport 31915 and it will be accessible from host using 15691
+  - port: 19091:31915
     nodeFilters:
       - loadbalancer
-registries:
-  create:
+  # # MINIO UI - 9090 set to nodeport 31920 and it will be accessible from host using 19090
+  - port: 19090:31920
+    nodeFilters:
+      - loadbalancer
+  # Iceberg Catalog - nessie 19120 / polaris 8181 set to port 31920 and it will be accessible via 8181
+  - port: 8181:31920
+    nodeFilters:
+      - loadbalancer
+
+registries: # define how registries should be created or used
+  create: # creates a default registry to be used with the cluster; same as `--registry-create registry.localhost`
     name: registry.localhost
     host: "0.0.0.0"
     hostPort: "5001"
-    proxy:
-      remoteURL: https://registry-1.docker.io
-      username: "${DOCKERHUB_USERNAME}"
-      password: "${DOCKERHUB_PASSWORD}"
-    volumes:
-      - ${REGISTRY_DATA}:/var/lib/registry 
-  runtime: # runtime (docker) specific options
-    gpuRequest: all # same as `--gpus all`
+
+volumes:
+  # Deploy cert-manager
+  - volume: ${FEATURES_DIR}/features/cert-manager.yml:/var/lib/rancher/k3s/server/manifests/cert-manager.yml
+    nodeFilters:
+      - server:*
+  # Deploy RisingWave
+  - volume: ${FEATURES_DIR}/features/risingwave.yml:/var/lib/rancher/k3s/server/manifests/risingwave.yml
+    nodeFilters:
+      - server:*
+  # Deploy Minio for Iceberg
+  - volume: ${FEATURES_DIR}/features/minio.yml:/var/lib/rancher/k3s/server/manifests/minio.yml
+    nodeFilters:
+      - server:*
+  # Deploy Kafka
+  - volume: ${FEATURES_DIR}/features/strimzi-kafka-op.yml:/var/lib/rancher/k3s/server/manifests/strimzi-kafka-op.yml
+    nodeFilters:
+      - server:*
+  # Deploy PostgreSQL
+  - volume: ${FEATURES_DIR}/features/postgresql.yml:/var/lib/rancher/k3s/server/manifests/postgresql.yml
+    nodeFilters:
+      - server:*
+
+files:
+  - description:
+      Deploy Kafka Cluster and related resources - topics, KRraft nodes etc.,
+    source: ../k8s/features/kafka-cluster.yaml
+    destination: /var/lib/rancher/k3s/server/manifests/kafka-cluster.yaml

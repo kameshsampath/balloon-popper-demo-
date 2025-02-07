@@ -1,0 +1,21 @@
+---
+# https://github.com/bitnami/charts/tree/main/bitnami/minio/#installing-the-chart
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: minio
+  namespace: kube-system
+spec:
+  chart: oci://registry-1.docker.io/bitnamicharts/minio
+  createNamespace: true
+  targetNamespace: iceberg
+  valuesContent: |-
+    auth:
+      rootUser: admin
+      rootPassword: password
+    defaultBuckets: "demo-buckets,warehouse"
+    service:
+      type: NodePort
+      nodePorts:
+        api: "31915"
+        console: "31920"

@@ -1,0 +1,19 @@
+---
+# https://github.com/bitnami/charts/tree/main/bitnami/postgresql/#installing-the-chart
+apiVersion: helm.cattle.io/v1
+kind: HelmChart
+metadata:
+  name: postgresql
+  namespace: kube-system
+spec:
+  chart: oci://registry-1.docker.io/bitnamicharts/postgresql
+  createNamespace: true
+  targetNamespace: iceberg
+  valuesContent: |-
+    global:
+      postgresql:
+        auth:
+          postgresPassword: password
+          database: nessie
+    image:
+      tag: 14.15.0-debian-12-r12
